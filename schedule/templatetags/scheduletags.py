@@ -17,14 +17,14 @@ from schedule.periods import weekday_names, weekday_abbrs
 register = template.Library()
 
 
-@register.inclusion_tag("schedule/_month_table.html", takes_context=True)
-def month_table(context, calendar, month, size="regular", shift=None):
+@register.inclusion_tag('schedule/_month_table.html', takes_context=True)
+def month_table(context, calendar, month, size='regular', shift=None):
     if shift:
         if shift == -1:
             month = month.prev()
         if shift == 1:
             month = next(month)
-    if size == "small":
+    if size == 'small':
         context['day_names'] = weekday_abbrs
     else:
         context['day_names'] = weekday_names
@@ -34,8 +34,8 @@ def month_table(context, calendar, month, size="regular", shift=None):
     return context
 
 
-@register.inclusion_tag("schedule/_day_cell.html", takes_context=True)
-def day_cell(context, calendar, day, month, size="regular"):
+@register.inclusion_tag('schedule/_day_cell.html', takes_context=True)
+def day_cell(context, calendar, day, month, size='regular'):
     context.update({
         'calendar': calendar,
         'day': day,
@@ -45,7 +45,7 @@ def day_cell(context, calendar, day, month, size="regular"):
     return context
 
 
-@register.inclusion_tag("schedule/_daily_table.html", takes_context=True)
+@register.inclusion_tag('schedule/_daily_table.html', takes_context=True)
 def daily_table(context, day, start=8, end=20, increment=30):
     """
       Display a nice table with occurrences and action buttons.
@@ -59,7 +59,6 @@ def daily_table(context, day, start=8, end=20, increment=30):
     if 'calendar' in context:
         addable &= CHECK_CALENDAR_PERM_FUNC(context['calendar'], user)
     context['addable'] = addable
-
     day_part = day.get_time_slot(day.start + datetime.timedelta(hours=start), day.start + datetime.timedelta(hours=end))
     # get slots to display on the left
     slots = _cook_slots(day_part, increment)
@@ -67,7 +66,7 @@ def daily_table(context, day, start=8, end=20, increment=30):
     return context
 
 
-@register.inclusion_tag("schedule/_event_title.html", takes_context=True)
+@register.inclusion_tag('schedule/_event_title.html', takes_context=True)
 def title(context, occurrence):
     context.update({
         'occurrence': occurrence,
@@ -75,11 +74,11 @@ def title(context, occurrence):
     return context
 
 
-@register.inclusion_tag("schedule/_event_options.html", takes_context=True)
+@register.inclusion_tag('schedule/_event_options.html', takes_context=True)
 def options(context, occurrence):
     context.update({
         'occurrence': occurrence,
-        'MEDIA_URL': getattr(settings, "MEDIA_URL"),
+        'MEDIA_URL': getattr(settings, 'MEDIA_URL'),
     })
     context['view_occurrence'] = occurrence.get_absolute_url()
     user = context['request'].user
@@ -93,17 +92,17 @@ def options(context, occurrence):
     return context
 
 
-@register.inclusion_tag("schedule/_create_event_options.html", takes_context=True)
+@register.inclusion_tag('schedule/_create_event_options.html', takes_context=True)
 def create_event_url(context, calendar, slot):
     context.update({
         'calendar': calendar,
-        'MEDIA_URL': getattr(settings, "MEDIA_URL"),
+        'MEDIA_URL': getattr(settings, 'MEDIA_URL'),
     })
     lookup_context = {
         'calendar_slug': calendar.slug,
     }
-    context['create_event_url'] = "%s%s" % (
-        reverse("calendar_create_event", kwargs=lookup_context),
+    context['create_event_url'] = '%s%s' % (
+        reverse('calendar_create_event', kwargs=lookup_context),
         querystring_for_date(slot))
     return context
 
@@ -120,7 +119,8 @@ class CalendarNode(template.Node):
         return ''
 
 
-def do_get_calendar_for_object(parser, token):
+@register.tag
+def get_calendar(parser, token):
     contents = token.split_contents()
     if len(contents) == 4:
         _, content_object, _, context_var = contents
@@ -144,7 +144,8 @@ class CreateCalendarNode(template.Node):
         return ''
 
 
-def do_get_or_create_calendar_for_object(parser, token):
+@register.tag
+def get_or_create_calendar(parser, token):
     contents = token.split_contents()
     if len(contents) > 2:
         obj = contents[1]
@@ -168,9 +169,6 @@ def do_get_or_create_calendar_for_object(parser, token):
     else:
         raise template.TemplateSyntaxError("%r tag follows form %r <content_object> [named <calendar name>] [by <distinction>] as <context_var>" % (token.split_contents()[0], token.split_contents()[0]))
     return CreateCalendarNode(obj, distinction, context_var, name)
-
-register.tag('get_calendar', do_get_calendar_for_object)
-register.tag('get_or_create_calendar', do_get_or_create_calendar_for_object)
 
 
 @register.simple_tag
@@ -218,7 +216,7 @@ def next_url(target, calendar, period):
         querystring_for_date(period.next().start)))
 
 
-@register.inclusion_tag("schedule/_prevnext.html")
+@register.inclusion_tag('schedule/_prevnext.html')
 def prevnext(target, calendar, period, fmt=None):
     if fmt is None:
         fmt = settings.DATE_FORMAT
@@ -231,7 +229,7 @@ def prevnext(target, calendar, period, fmt=None):
     return context
 
 
-@register.inclusion_tag("schedule/_detail.html")
+@register.inclusion_tag('schedule/_detail.html')
 def detail(occurrence):
     context = {
         'occurrence': occurrence,

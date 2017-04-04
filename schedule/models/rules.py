@@ -20,6 +20,7 @@ freqs = (("YEARLY", _("Yearly")),
          ("MINUTELY", _("Minutely")),
          ("SECONDLY", _("Secondly")))
 
+
 @python_2_unicode_compatible
 class Rule(with_metaclass(ModelBase, *get_model_bases('Rule'))):
     """
@@ -69,7 +70,7 @@ class Rule(with_metaclass(ModelBase, *get_model_bases('Rule'))):
         app_label = 'schedule'
 
     def rrule_frequency(self):
-        compatibiliy_dict = {
+        compatibility_dict = {
             'DAILY': DAILY,
             'MONTHLY': MONTHLY,
             'WEEKLY': WEEKLY,
@@ -78,7 +79,7 @@ class Rule(with_metaclass(ModelBase, *get_model_bases('Rule'))):
             'MINUTELY': MINUTELY,
             'SECONDLY': SECONDLY
         }
-        return compatibiliy_dict[self.frequency]
+        return compatibility_dict[self.frequency]
 
     def _weekday_or_number(self, param):
         '''
@@ -107,13 +108,16 @@ class Rule(with_metaclass(ModelBase, *get_model_bases('Rule'))):
             if len(param) != 2:
                 continue
 
-            param = (str(param[0]).lower(), [ x for x in
-                [self._weekday_or_number(v) for v in param[1].split(',')]
-                if x is not None])
+            param = (
+                str(param[0]).lower(),
+                [x for x in
+                 [self._weekday_or_number(v) for v in param[1].split(',')]
+                 if x is not None],
+            )
 
             if len(param[1]) == 1:
-                 param_value = self._weekday_or_number(param[1][0])
-                 param = (param[0], param_value)
+                param_value = self._weekday_or_number(param[1][0])
+                param = (param[0], param_value)
             param_dict.append(param)
         return dict(param_dict)
 

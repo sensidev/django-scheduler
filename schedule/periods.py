@@ -77,7 +77,7 @@ class Period(object):
 
     def _get_sorted_occurrences(self):
         occurrences = []
-        if hasattr(self, "occurrence_pool") and self.occurrence_pool is not None:
+        if hasattr(self, 'occurrence_pool') and self.occurrence_pool is not None:
             for occurrence in self.occurrence_pool:
                 if occurrence.start <= self.utc_end and occurrence.end >= self.utc_start:
                     occurrences.append(occurrence)
@@ -144,8 +144,8 @@ class Period(object):
 
     def get_time_slot(self, start, end):
         if start >= self.start and end <= self.end:
-            return Period(self.events, start, end)
-        return Period([], start, end)
+            return Period(self.events, start, end, tzinfo=self.tzinfo)
+        return Period([], start, end, tzinfo=self.tzinfo)
 
     def create_sub_period(self, cls, start=None, tzinfo=None):
         if tzinfo is None:
