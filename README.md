@@ -88,6 +88,7 @@ Add the following Bower dependencies for scheduler:
 ```
 BOWER_INSTALLED_APPS = (
     'jquery',
+    'jquery-ui',
     'bootstrap'
 )
 ```
@@ -98,6 +99,7 @@ Last step, install bower dependencies with:
 ./manage.py bower install
 ```
 
+Remember to execute "python manage.py collectstatic"
 
 Features
 ========

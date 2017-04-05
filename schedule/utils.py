@@ -1,3 +1,4 @@
+from functools import wraps
 import heapq
 from annoying.functions import get_object_or_None
 from django.http import HttpResponseRedirect, HttpResponseNotFound

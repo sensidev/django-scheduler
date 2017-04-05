@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name='django-scheduler',
-    version='0.8.2',
+    version='0.8.3',
     description='A calendaring app for Django.',
     author='Leonardo Lazzaro',
     author_email='lazzaroleonardo@gmail.com',
@@ -13,8 +13,6 @@ setup(
     packages=[
         'schedule',
         'schedule.feeds',
-        'schedule.management',
-        'schedule.management.commands',
         'schedule.models',
         'schedule.migrations',
         'schedule.templatetags',
@@ -22,7 +20,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Intended Audience :: Developers',

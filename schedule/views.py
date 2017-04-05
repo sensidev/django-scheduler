@@ -157,7 +157,7 @@ class CancelOccurrenceView(OccurrenceEditMixin, ModelFormMixin, ProcessFormView)
         self.success_url = kwargs.get(
             'next',
             get_next_url(request, event.get_absolute_url()))
-        if "cancel" not in request.POST:
+        if 'cancel' not in request.POST:
             occurrence.cancel()
         return HttpResponseRedirect(self.success_url)
 
@@ -207,8 +207,8 @@ class CreateEventView(EventEditMixin, CreateView):
             try:
                 start = datetime.datetime(**date)
                 initial_data = {
-                    "start": start,
-                    "end": start + datetime.timedelta(minutes=30)
+                    'start': start,
+                    'end': start + datetime.timedelta(minutes=30)
                 }
             except TypeError:
                 raise Http404
@@ -248,7 +248,7 @@ class DeleteEventView(EventEditMixin, DeleteView):
 
 def get_occurrence(event_id, occurrence_id=None, year=None, month=None,
                    day=None, hour=None, minute=None, second=None,
-                   tzinfo=pytz.utc):
+                   tzinfo=None):
     """
     Because occurrences don't have to be persisted, there must be two ways to
     retrieve them. both need an event, but if its persisted the occurrence can
@@ -259,11 +259,12 @@ def get_occurrence(event_id, occurrence_id=None, year=None, month=None,
     if(occurrence_id):
         occurrence = get_object_or_404(Occurrence, id=occurrence_id)
         event = occurrence.event
-    elif(all((year, month, day, hour, minute, second))):
+    elif None not in (year, month, day, hour, minute, second):
         event = get_object_or_404(Event, id=event_id)
-        occurrence = event.get_occurrence(
-            datetime.datetime(int(year), int(month), int(day), int(hour),
-                              int(minute), int(second), tzinfo=tzinfo))
+        date = timezone.make_aware(datetime.datetime(int(year), int(month),
+                                   int(day), int(hour), int(minute),
+                                   int(second)), tzinfo)
+        occurrence = event.get_occurrence(date)
         if occurrence is None:
             raise Http404
     else:
@@ -370,19 +371,19 @@ def _api_occurrences(start, end, calendar_slug):
                 if occurrence.event.end_recurring_period else None
 
             response_data.append({
-                "id": occurrence_id,
-                "title": occurrence.title,
-                "start": occurrence.start.isoformat(),
-                "end": occurrence.end.isoformat(),
-                "existed": existed,
-                "event_id": occurrence.event.id,
-                "color": occurrence.event.color_event,
-                "description": occurrence.description,
-                "rule": recur_rule,
-                "end_recurring_period": recur_period_end,
-                "creator": str(occurrence.event.creator),
-                "calendar": occurrence.event.calendar.slug,
-                "cancelled": occurrence.cancelled,
+                'id': occurrence_id,
+                'title': occurrence.title,
+                'start': occurrence.start.isoformat(),
+                'end': occurrence.end.isoformat(),
+                'existed': existed,
+                'event_id': occurrence.event.id,
+                'color': occurrence.event.color_event,
+                'description': occurrence.description,
+                'rule': recur_rule,
+                'end_recurring_period': recur_period_end,
+                'creator': str(occurrence.event.creator),
+                'calendar': occurrence.event.calendar.slug,
+                'cancelled': occurrence.cancelled,
             })
     return response_data
 
@@ -392,7 +393,7 @@ def _api_occurrences(start, end, calendar_slug):
 def api_move_or_resize_by_code(request):
     response_data = {}
     user = request.user
-    id = request.POST.get(id)
+    id = request.POST.get('id')
     existed = bool(request.POST.get('existed') == 'true')
     delta = datetime.timedelta(minutes=int(request.POST.get('delta')))
     resize = bool(request.POST.get('resize', False))
@@ -453,8 +454,8 @@ def api_select_create(request):
 
 
 def _api_select_create(start, end, calendar_slug):
-    start = dateutil.parser.parse('start')
-    end = dateutil.parser.parse('end')
+    start = dateutil.parser.parse(start)
+    end = dateutil.parser.parse(end)
 
     calendar = Calendar.objects.get(slug=calendar_slug)
     Event.objects.create(

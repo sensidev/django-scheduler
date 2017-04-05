@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from schedule.models import Calendar, Event, CalendarRelation, Rule
+from schedule.models import Calendar, Event, CalendarRelation, Occurrence, Rule
 from schedule.forms import EventAdminForm
 
 
 class CalendarAdminOptions(admin.ModelAdmin):
     list_display = ('name', 'slug')
-    prepopulated_fields = {"slug": ("name",)}
+    prepopulated_fields = {'slug': ('name',)}
     search_fields = ['name']
     fieldsets = (
         (None, {
@@ -60,4 +60,5 @@ class RuleAdmin(admin.ModelAdmin):
 admin.site.register(Calendar, CalendarAdminOptions)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Rule, RuleAdmin)
+admin.site.register(Occurrence, admin.ModelAdmin)
 admin.site.register(CalendarRelation, CalendarRelationAdmin)

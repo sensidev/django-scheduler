@@ -179,7 +179,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
 
     def get_rrule_object(self, tzinfo):
         if self.rule is None:
-            return 
+            return
         params = self._event_params()
         frequency = self.rule.rrule_frequency()
         if timezone.is_naive(self.start):
@@ -187,7 +187,15 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
         else:
             dtstart = tzinfo.normalize(self.start).replace(tzinfo=None)
 
-        return rrule.rrule(frequency, dtstart=dtstart, **params)
+        if self.end_recurring_period is None:
+            until = None
+        elif timezone.is_naive(self.end_recurring_period):
+            until = self.end_recurring_period
+        else:
+            until = tzinfo.normalize(
+                self.end_recurring_period.astimezone(tzinfo)).replace(tzinfo=None)
+
+        return rrule.rrule(frequency, dtstart=dtstart, until=until, **params)
 
     def _create_occurrence(self, start, end=None):
         if end is None:
@@ -245,7 +253,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
             closest_start = start_rule.before(start, inc=False)
             if closest_start is not None and closest_start + duration > start:
                 o_starts.append(closest_start)
-            
+
             # Occurrences starts that happen inside timespan (end-inclusive)
             occs = start_rule.between(start, end, inc=True)
             # The occurrence that start on the end of the timespan is potentially
@@ -277,7 +285,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
         """
         returns a generator that produces unpresisted occurrences after the
         datetime ``after``. (Optionally) This generator will return up to
-        ``max_occurences`` occurrences or has reached ``self.end_recurring_period``, whichever is smallest.
+        ``max_occurrences`` occurrences or has reached ``self.end_recurring_period``, whichever is smallest.
         """
 
         tzinfo = timezone.utc
@@ -295,19 +303,17 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
         loop_counter = 0
         for o_start in date_iter:
             o_start = tzinfo.localize(o_start)
-            if self.end_recurring_period and self.end_recurring_period and o_start > self.end_recurring_period:
-                break
             o_end = o_start + difference
             if o_end > after:
                 yield self._create_occurrence(o_start, o_end)
 
             loop_counter += 1
 
-    def occurrences_after(self, after=None, max_occurences=None):
+    def occurrences_after(self, after=None, max_occurrences=None):
         """
         returns a generator that produces occurrences after the datetime
         ``after``.  Includes all of the persisted Occurrences. (Optionally) This generator will return up to
-        ``max_occurences`` occurrences or has reached ``self.end_recurring_period``, whichever is smallest.
+        ``max_occurrences`` occurrences or has reached ``self.end_recurring_period``, whichever is smallest.
         """
         if after is None:
             after = timezone.now()
@@ -315,7 +321,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
         generator = self._occurrences_after_generator(after)
         trickies = list(self.occurrence_set.filter(original_start__lte=after, start__gte=after).order_by('start'))
         for index, nxt in enumerate(generator):
-            if max_occurences and index > max_occurences - 1:
+            if max_occurrences and index > max_occurrences - 1:
                 break
             if (len(trickies) > 0 and (nxt is None or nxt.start > trickies[0].start)):
                 yield trickies.pop(0)
@@ -356,14 +362,13 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
                     param in start_params):
                 sp = start_params[param]
                 if sp == rule_params[param] or (
-                        hasattr(rule_params[param], '__iter__')
-                        and sp in rule_params[param]):
+                        hasattr(rule_params[param], '__iter__') and
+                        sp in rule_params[param]):
                     event_params[param] = [sp]
                 else:
                     event_params[param] = rule_params[param]
             else:
                 event_params[param] = rule_params[param]
-
 
         return event_params
 
