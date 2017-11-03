@@ -268,6 +268,7 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
             # Create the Occurrence objects for the found start dates
             for o_start in o_starts:
                 o_start = tzinfo.localize(o_start)
+                o_start = self._get_dst_adjusted_date(self.start, o_start)
                 if use_naive:
                     o_start = timezone.make_naive(o_start, tzinfo)
                 o_end = o_start + duration
@@ -281,6 +282,15 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
                 return [self._create_occurrence(self.start)]
             else:
                 return []
+
+    def _get_dst_adjusted_date(self, event_date, occurrence_date):
+        event_dst_offset = timezone.localtime(event_date).dst()
+        occurrence_dst_offset = timezone.localtime(occurrence_date).dst()
+
+        offset = event_dst_offset - occurrence_dst_offset
+
+        return timezone.localtime(occurrence_date + offset)
+
 
     def _occurrences_after_generator(self, after=None):
         """
