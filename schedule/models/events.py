@@ -201,6 +201,10 @@ class Event(with_metaclass(ModelBase, *get_model_bases('Event'))):
     def _create_occurrence(self, start, end=None):
         if end is None:
             end = start + (self.end - self.start)
+
+        start = self._get_dst_adjusted_date(self.start, start)
+        end = self._get_dst_adjusted_date(self.end, end)
+
         return Occurrence(event=self, start=start, end=end, original_start=start, original_end=end)
 
     def get_occurrence(self, date):
